@@ -1,5 +1,6 @@
 #include "FigureLoader.hpp"
 #include <algorithm>
+#include <stdexcept>
 using std::runtime_error;
 using std::string;
 
@@ -8,6 +9,9 @@ using std::string;
 
 #define dlclose( x )	FreeLibrary( x )
 
+/**
+ * windows version for dlerror()
+ */
 string dlerror()
 {
     //Get the error message, if any.
@@ -34,12 +38,14 @@ namespace plugin{
 
 std::list<string> FigureLoader::loadedLibs;
 
-FigureLoader::FigureLoader( std::string fileName ) throw( runtime_error )
+FigureLoader::FigureLoader( std::string fileName )
 	: libname( fileName )
 {
+	// Check if the file is already loaded
 	if( std::find( loadedLibs.begin(), loadedLibs.end(), libname ) != loadedLibs.end() )
 		throw runtime_error( libname + ": already loaded" );
 
+	// Open the library
 #ifdef _WIN32
 	handle = LoadLibrary( libname.c_str() );
 #else
@@ -49,10 +55,11 @@ FigureLoader::FigureLoader( std::string fileName ) throw( runtime_error )
 	if( !handle )
 		throw runtime_error( dlerror() );
 
+	// Obtain the address of the createFigure() function.
 #ifdef _WIN32
-	create = reinterpret_cast<Creator>( GetProcAddress( handle, "createFigure" ) );
+	create = reinterpret_cast<Creator>( GetProcAddress( handle, CREATE_FIGURE_FUNCTION ) );
 #else
-	*reinterpret_cast<void**>( &create ) = dlsym( handle, "createFigure" );
+	*reinterpret_cast<void**>( &create ) = dlsym( handle, CREATE_FIGURE_FUNCTION );
 #endif
 	if( !create ){
 		string error( dlerror() );
@@ -60,10 +67,11 @@ FigureLoader::FigureLoader( std::string fileName ) throw( runtime_error )
 		throw runtime_error( error );
 	}
 
+	// Obtain the address of the destroyFigure() function.
 #ifdef _WIN32
-	destroy = reinterpret_cast<Destroyer>( GetProcAddress( handle, "destroyFigure" ) );
+	destroy = reinterpret_cast<Destroyer>( GetProcAddress( handle, DESTROY_FIGURE_FUNCTION ) );
 #else
-	*reinterpret_cast<void**>( &destroy ) = dlsym( handle, "destroyFigure" );
+	*reinterpret_cast<void**>( &destroy ) = dlsym( handle, DESTROY_FIGURE_FUNCTION );
 #endif
 	if( !destroy ){
 		string error( dlerror() );
@@ -71,12 +79,14 @@ FigureLoader::FigureLoader( std::string fileName ) throw( runtime_error )
 		throw runtime_error( error );
 	}
 
+	// Create the figure using createFigure() function found in the file.
 	figure = create();
 	loadedLibs.push_back( libname );
 }
 	
 FigureLoader::~FigureLoader()
 {
+	// Destroy the figure and close the library file
 	destroy( figure );
 	dlclose( handle );
 	loadedLibs.remove( libname );

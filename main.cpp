@@ -1,7 +1,6 @@
 #include <filesystem>
 #include <iostream>
 #include <print>
-#include <ranges>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -38,8 +37,8 @@ int main(int argc, char** argv) {
 
   while (true) {
     std::println("Select a Figure:");
-    for (auto const [index, loader] : std::views::enumerate(loaders)) {
-      std::println("\t{}) {}", index + 1, loader.getFigure().getName());
+    for (int index = 1; auto const& loader : loaders) {
+      std::println("\t{}) {}", index++, loader.getFigure().getName());
     }
     std::print("\t*) Quit\nOption: ");
 

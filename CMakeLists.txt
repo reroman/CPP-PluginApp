@@ -1,25 +1,29 @@
-cmake_minimum_required( VERSION 3.5 )
-project( PluginApp CXX )
-set( CMAKE_BUILD_TYPE "Release" )
-set( CMAKE_CXX_COMPILER "g++" )
+cmake_minimum_required(VERSION 3.19)
+project(
+  PluginApp
+  VERSION 2.0.0
+  DESCRIPTION "Simple app extensible using plugins in C++"
+  LANGUAGES CXX)
 
-# Establece la versión
-set( PluginApp_VERSION_MAJOR 1 )
-set( PluginApp_VERSION_MINOR 0 )
+option(BUILD_PLUGINS "Build a few plugins to test" ON)
 
-# Directorio de includes: El directorio de fuentes
-include_directories( "${PROJECT_SOURCE_DIR}" )
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -U__STRICT_ANSI__" )
+# Plugin interface
+add_library(figure_plugin INTERFACE Figure.hpp)
+target_include_directories(figure_plugin INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
-# Crear ejecutable
-add_executable( figures FigureLoader.cpp main.cpp )
-if( UNIX )
-	target_link_libraries( figures dl ) # -ldl
-endif( UNIX )
+# Main program
+add_executable(figures FigureLoader.hpp FigureLoader.cpp main.cpp)
+target_link_libraries(figures PRIVATE figure_plugin)
 
-option( BUILD_PLUGINS "Build a few plugins to test" ON )
-if( BUILD_PLUGINS )
-	message( "Configuring plugins" )
-	add_subdirectory( plugins )
-endif( BUILD_PLUGINS )
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  target_link_libraries(figures PRIVATE dl)
+endif()
+
+# Plugins
+if(BUILD_PLUGINS)
+  message(STATUS "Configuring plugins")
+  add_subdirectory(plugins)
+endif(BUILD_PLUGINS)

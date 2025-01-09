@@ -1,61 +1,75 @@
-#include "FigureLoader.hpp"
+#include <filesystem>
 #include <iostream>
-#include <cstdio>
-#include <cstring>
+#include <print>
+#include <ranges>
+#include <stdexcept>
+#include <string>
+#include <string_view>
 #include <vector>
-using namespace std;
-using namespace plugin;
 
-int main( int argc, char **argv )
-{
-	// Commands to list dynamic link libraries in folder plugins
-#ifdef _WIN32
-#define popen _popen
-	const char *cmd = "dir /B plugins\\*.dll";
-#else
-	const char *cmd = "ls plugins | grep .so";
-#endif
+#include "FigureLoader.hpp"
 
-	vector<FigureLoader*> figures;
-	FILE *fileLibs = popen( cmd, "r" ); // Execute the command obtaining its output
-	char libname[200];
-	int option;
+/**
+ * @brief Get the list of files in a directory.
+ * @param directory Name of the directory.
+ * @return A vector with the names of the files in the directory.
+ */
+std::vector<std::string> getPluginList(std::string_view directory);
 
-	// Iterate over the output
-	while( fgets( libname, 200, fileLibs ) ){
-		*strrchr( libname, '\n' ) = '\0';
+int main(int argc, char** argv) {
+  std::string const pluginsDir = [&]() {
+    if (argc > 1) {
+      return std::string(argv[1]);
+    }
+    return std::string("plugins");
+  }();
 
-		try{
-			// Load the file and add to a vector
-			figures.push_back( new FigureLoader( "plugins/" + string(libname) ) );
-		}
-		catch( runtime_error &e ){
-			cerr << "Failed to load: " << libname
-				<< "\n\t" << e.what() << endl;
-		}
-	}
-	fclose( fileLibs );
+  std::vector<plugin::FigureLoader> loaders;
 
-	while( true ){
-		cout << "Select a Figure:\n";
-		for( unsigned i = 0 ; i < figures.size() ; i++ )
-			cout << '\t' << i+1 << ") " << figures[i]->getFigure()->getName() << endl;
-		cout << "\t*) Quit\nOption: ";
-		cin >> option;
+  for (auto const plugins = getPluginList(pluginsDir);
+       auto const& pluginFile : plugins) {
+    try {
+      // Load the plugin
+      loaders.emplace_back(pluginFile);
+    } catch (std::runtime_error const& e) {
+      std::println(stderr, "Failed to load: {}\n\t{}", pluginFile, e.what());
+    }
+  }
 
-		try{
-			plugin::Figure *p = figures.at( option-1 )->getFigure();
-			p->setData(); // Set required data for the figure
-			cout << "Area is " << p->area() // Get area
-				<< "\nPerimeter is " << p->perimeter() << "\n\n"; // Get perimeter
-		}
-		catch( out_of_range &e ){
-			cout << "Bye\n";
-			break;
-		}
-	}
+  while (true) {
+    std::println("Select a Figure:");
+    for (auto const [index, loader] : std::views::enumerate(loaders)) {
+      std::println("\t{}) {}", index + 1, loader.getFigure().getName());
+    }
+    std::print("\t*) Quit\nOption: ");
 
-	for( auto i : figures )
-		delete i;
-	return 0;
+    std::size_t selection{};
+    std::cin >> selection;
+
+    try {
+      plugin::Figure& figure = loaders.at(selection - 1).getFigure();
+
+      figure.userInput();
+      std::println(
+          "Area is {}\n"
+          "Perimeter is {}\n",
+          figure.area(), figure.perimeter());
+    } catch (std::out_of_range const&) {
+      std::println("Bye");
+      break;
+    }
+  }
+  return 0;
+}
+
+std::vector<std::string> getPluginList(std::string_view directory) {
+  std::filesystem::path const pluginsDir(directory);
+  std::vector<std::string> plugins;
+
+  for (auto const& entry : std::filesystem::directory_iterator(pluginsDir)) {
+    if (entry.is_regular_file()) {
+      plugins.push_back(entry.path().relative_path().string());
+    }
+  }
+  return plugins;
 }

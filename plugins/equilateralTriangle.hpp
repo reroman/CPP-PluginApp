@@ -3,19 +3,18 @@
 
 #include <Figure.hpp>
 
-class EquilateralTriangle: public plugin::Figure
-{
-	public:
-		EquilateralTriangle();
+class EquilateralTriangle final : public plugin::Figure {
+ public:
+  EquilateralTriangle();
 
-		void setData();
-		double area() const override;
-		double perimeter() const override;
+  // Figure interface
+  void userInput() final;
+  double area() const final;
+  double perimeter() const final;
 
-	private:
-		double side, height;
+ private:
+  double side{};
+  double height{};
 };
-
-DEFAULT_REGISTER_FIGURE( EquilateralTriangle );
 
 #endif

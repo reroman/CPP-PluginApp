@@ -3,19 +3,17 @@
 
 #include <Figure.hpp>
 
-class Square: public plugin::Figure
-{
-	public:
-		Square();
+class Square final : public plugin::Figure {
+ public:
+  Square();
 
-		void setData() override;
-		double area() const override;
-		double perimeter() const override;
+  // Figure interface
+  void userInput() final;
+  double area() const final;
+  double perimeter() const final;
 
-	private:
-		double side;
+ private:
+  double side{};
 };
-
-DEFAULT_REGISTER_FIGURE( Square );
 
 #endif

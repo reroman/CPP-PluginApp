@@ -66,7 +66,9 @@ std::vector<std::string> getPluginList(std::string_view directory) {
   std::vector<std::string> plugins;
 
   for (auto const& entry : std::filesystem::directory_iterator(pluginsDir)) {
-    if (entry.is_regular_file()) {
+    if (auto const& ext = entry.path().extension();
+        entry.is_regular_file() &&
+        (ext == ".dll" || ext == ".so" || ext == ".dylib")) {
       plugins.push_back(entry.path().relative_path().string());
     }
   }

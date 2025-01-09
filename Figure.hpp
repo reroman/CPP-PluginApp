@@ -8,7 +8,7 @@
 namespace plugin {
 
 /** @brief Name of the factory function that creates a Figure object. */
-constexpr auto factory_name = "figureFactory";
+constexpr auto FACTORY_NAME = "figureFactory";
 
 /**
  * @brief Abstract class that represents a plugin Figure.

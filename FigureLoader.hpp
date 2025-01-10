@@ -12,8 +12,11 @@
 #include <type_traits>
 
 // Just for use the same name in both platforms.
-using dlclose = FreeLibrary;
-using LibraryHandle std::remove_pointer<HANDLE>::type;
+using LibraryHandle = std::remove_pointer<HMODULE>::type;
+
+inline void dlclose(LibraryHandle* handle) {
+  FreeLibrary(handle);
+}
 
 #else
 #include <dlfcn.h>
@@ -46,11 +49,11 @@ class FigureLoader {
  private:
   /** @brief The deleter for the library handle. */
   struct LibHandlerDeleter {
-    void operator()(LibraryHandle* handle) noexcept { /*dlclose(handle);*/ }
+    void operator()(LibraryHandle* handle) noexcept { dlclose(handle); }
   };
 
   /** @brief Pointer to the factory function. */
-  using FactoryFn = std::unique_ptr<Figure> (*)();
+  using FactoryFn = Figure* (*)();
 
   std::string libname;
   std::unique_ptr<LibraryHandle, LibHandlerDeleter> handle;
@@ -58,5 +61,5 @@ class FigureLoader {
   std::unique_ptr<Figure> figure;
 };
 
-}  // namespace plugin
+} // namespace plugin
 #endif

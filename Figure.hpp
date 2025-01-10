@@ -1,7 +1,6 @@
 #ifndef FIGURE_HPP
 #define FIGURE_HPP
 
-#include <memory>
 #include <string>
 #include <string_view>
 
@@ -14,8 +13,9 @@ constexpr auto FACTORY_NAME = "figureFactory";
  * @brief Abstract class that represents a plugin Figure.
  * @details Every plugin in this application should extends this class and
  * override the functions userInput(), area() and perimeter(). It also requires
- * to define a C function figureFactory() that returns a unique pointer to a
+ * to define a C function figureFactory() that returns a pointer to a
  * Figure object.
+ * @note MSVC doesn't support std::unique_ptr as return type in C functions.
  */
 class Figure {
  public:
@@ -49,12 +49,19 @@ class Figure {
   std::string name;
 };
 
-}  // namespace plugin
+} // namespace plugin
+
+#ifdef _MSC_VER
+// Required for MSVC to locate the functions correctly.
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
 
 /** @brief Default implementation of the figureFactory() function. */
-#define DEFAULT_FIGURE_FACTORY(figure)                         \
-  extern "C" std::unique_ptr<plugin::Figure> figureFactory() { \
-    return std::make_unique<figure>();                         \
+#define DEFAULT_FIGURE_FACTORY(figure)                \
+  extern "C" EXPORT plugin::Figure* figureFactory() { \
+    return new figure();                              \
   }
 
 #endif

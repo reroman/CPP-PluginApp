@@ -10,6 +10,13 @@ option(BUILD_PLUGINS "Build a few plugins to test" ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# add warnings
+if(MSVC)
+  add_compile_options(/W4)
+else()
+  add_compile_options(-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion)
+endif()
+
 # Plugin interface
 add_library(figure_plugin INTERFACE Figure.hpp)
 target_include_directories(figure_plugin INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

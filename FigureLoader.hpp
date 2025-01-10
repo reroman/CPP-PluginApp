@@ -14,7 +14,7 @@
 // Just for use the same name in both platforms.
 using LibraryHandle = std::remove_pointer<HMODULE>::type;
 
-inline void dlclose(LibraryHandle* handle) {
+inline void dlclose(LibraryHandle* handle) noexcept {
   FreeLibrary(handle);
 }
 
@@ -52,12 +52,8 @@ class FigureLoader {
     void operator()(LibraryHandle* handle) noexcept { dlclose(handle); }
   };
 
-  /** @brief Pointer to the factory function. */
-  using FactoryFn = Figure* (*)();
-
   std::string libname;
   std::unique_ptr<LibraryHandle, LibHandlerDeleter> handle;
-  FactoryFn factory{};
   std::unique_ptr<Figure> figure;
 };
 

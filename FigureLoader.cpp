@@ -44,12 +44,15 @@ FigureLoader::FigureLoader(std::string_view fileName) : libname(fileName) {
     throw std::runtime_error(dlerror());
   }
 
+  /** @brief Pointer to the factory function. */
+  using FactoryFn = Figure* (*)();
+
   // Get the address of the figureFactory() function.
 #ifdef _WIN32
-  factory =
+  auto factory =
       reinterpret_cast<FactoryFn>(GetProcAddress(handle.get(), FACTORY_NAME));
 #else
-  factory = reinterpret_cast<FactoryFn>(dlsym(handle.get(), FACTORY_NAME));
+  auto factory = reinterpret_cast<FactoryFn>(dlsym(handle.get(), FACTORY_NAME));
 #endif
 
   if (factory == nullptr) {

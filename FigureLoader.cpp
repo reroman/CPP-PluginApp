@@ -10,7 +10,7 @@ namespace {
 std::string dlerror() {
   DWORD const errorMessageID = GetLastError();
   if (errorMessageID == 0) {
-    return string();
+    return std::string();
   }
 
   LPSTR messageBuffer = nullptr;
@@ -20,13 +20,13 @@ std::string dlerror() {
       NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
       (LPSTR)&messageBuffer, 0, NULL);
 
-  string message(messageBuffer, size);
+  std::string message(messageBuffer, size);
 
   LocalFree(messageBuffer);
   return message;
 }
 
-}  // namespace
+} // namespace
 
 #endif
 
@@ -57,7 +57,7 @@ FigureLoader::FigureLoader(std::string_view fileName) : libname(fileName) {
   }
 
   // Create the figure instance.
-  figure = factory();
+  figure.reset(factory());
 }
 
-}  // namespace plugin
+} // namespace plugin

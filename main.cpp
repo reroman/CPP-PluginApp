@@ -1,6 +1,5 @@
 #include <filesystem>
 #include <iostream>
-#include <print>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -28,19 +27,20 @@ int main(int argc, char** argv) {
   for (auto const plugins = getPluginList(pluginsDir);
        auto const& pluginFile : plugins) {
     try {
-      // Load the plugin
+      std::cout << "Loading " << pluginFile << "...";
       loaders.emplace_back(pluginFile);
+      std::cout << "Loaded\n";
     } catch (std::runtime_error const& e) {
-      std::println(stderr, "Failed to load: {}\n\t{}", pluginFile, e.what());
+      std::cerr << "Failed: " << e.what() << '\n';
     }
   }
 
   while (true) {
-    std::println("Select a Figure:");
+    std::cout << "\nSelect a Figure:";
     for (int index = 1; auto const& loader : loaders) {
-      std::println("\t{}) {}", index++, loader.getFigure().getName());
+      std::cout << "\n\t" << index++ << ") " << loader.getFigure().getName();
     }
-    std::print("\t*) Quit\nOption: ");
+    std::cout << "\n\t*) Quit\nOption: ";
 
     std::size_t selection{};
     std::cin >> selection;
@@ -49,12 +49,10 @@ int main(int argc, char** argv) {
       plugin::Figure& figure = loaders.at(selection - 1).getFigure();
 
       figure.userInput();
-      std::println(
-          "Area is {}\n"
-          "Perimeter is {}\n",
-          figure.area(), figure.perimeter());
+      std::cout << "Area is " << figure.area() << "\nPerimeter is "
+                << figure.perimeter() << '\n';
     } catch (std::out_of_range const&) {
-      std::println("Bye");
+      std::cout << "Bye\n";
       break;
     }
   }

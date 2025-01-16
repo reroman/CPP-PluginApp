@@ -11,8 +11,8 @@
 #include <windows.h>
 #include <type_traits>
 
-// Just for use the same name in both platforms.
-using LibraryHandle = std::remove_pointer<HMODULE>::type;
+// Just for using the same name in both platforms.
+using LibraryHandler = std::remove_pointer<HMODULE>::type;
 
 inline void dlclose(LibraryHandle* handle) noexcept {
   FreeLibrary(handle);
@@ -20,7 +20,7 @@ inline void dlclose(LibraryHandle* handle) noexcept {
 
 #else
 #include <dlfcn.h>
-using LibraryHandle = void;
+using LibraryHandler = void;
 #endif
 
 namespace plugin {
@@ -47,13 +47,13 @@ class FigureLoader {
   void getFigure() && = delete;
 
  private:
-  /** @brief The deleter for the library handle. */
+  /** @brief Deleter for the library handler. */
   struct LibHandlerDeleter {
-    void operator()(LibraryHandle* handle) noexcept { dlclose(handle); }
+    void operator()(LibraryHandler* handle) noexcept { dlclose(handle); }
   };
 
   std::string libname;
-  std::unique_ptr<LibraryHandle, LibHandlerDeleter> handle;
+  std::unique_ptr<LibraryHandler, LibHandlerDeleter> handle;
   std::unique_ptr<Figure> figure;
 };
 

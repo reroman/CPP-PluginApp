@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     try {
       std::cout << "Loading " << pluginFile << "...";
       loaders.emplace_back(pluginFile);
-      std::cout << "Loaded\n";
+      std::cout << " Loaded!\n";
     } catch (std::runtime_error const& e) {
       std::cerr << "Failed: " << e.what() << '\n';
     }
@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
   return 0;
 }
 
-std::vector<std::string> getPluginList(std::string_view directory) {
+std::vector<std::string> getPluginList(std::string_view directory) try {
   std::filesystem::path const pluginsDir(directory);
   std::vector<std::string> plugins;
 
@@ -71,4 +71,7 @@ std::vector<std::string> getPluginList(std::string_view directory) {
     }
   }
   return plugins;
+} catch (std::filesystem::filesystem_error const& e) {
+  std::cerr << e.what() << '\n';
+  return {};
 }

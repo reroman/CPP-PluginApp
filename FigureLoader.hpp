@@ -14,7 +14,7 @@
 // Just for using the same name in both platforms.
 using LibraryHandler = std::remove_pointer<HMODULE>::type;
 
-inline void dlclose(LibraryHandle* handle) noexcept {
+inline void dlclose(LibraryHandler* handle) noexcept {
   FreeLibrary(handle);
 }
 

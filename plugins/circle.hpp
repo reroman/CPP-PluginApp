@@ -3,21 +3,19 @@
 
 #include <Figure.hpp>
 
-class Circle : public plugin::Figure
-{
-	public:
-		Circle();
+class Circle final : public plugin::Figure {
+ public:
+  static constexpr double PI = 3.14159;
 
-		void setData() override;
-		double area() const override;
-		double perimeter() const override;
-		
-		static constexpr double PI = 3.14159;
+  Circle();
 
-	private:
-		double radius;
+  // Figure interface
+  void userInput() final;
+  double area() const final;
+  double perimeter() const final;
+
+ private:
+  double radius{};
 };
-
-DEFAULT_REGISTER_FIGURE( Circle );
 
 #endif

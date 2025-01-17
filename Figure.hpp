@@ -15,7 +15,8 @@ constexpr auto FACTORY_NAME = "figureFactory";
  * override the functions userInput(), area() and perimeter(). It also requires
  * to define a C function figureFactory() that returns a pointer to a
  * Figure object.
- * @note MSVC doesn't support std::unique_ptr as return type in C functions.
+ * @note MSVC doesn't support std::unique_ptr as return type in C functions, so
+ * a raw pointer is used.
  */
 class Figure {
  public:
